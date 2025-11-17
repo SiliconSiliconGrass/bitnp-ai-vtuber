@@ -11,8 +11,8 @@
         <div class="user-interface" id="user-interface">
             <!-- UI区域 -->
             <button v-if="!audioEnabled" @click="enableAudioActivities">启用音频</button>
-            <!-- <input ref="inputArea" type="text" v-model="inputText" placeholder="请输入..."> -->
-            <!-- <button @click="switchMicrophoneMode">{{ (microphoneOn) ? '闭麦' : '开麦' }}</button> -->
+            <input ref="inputArea" type="text" v-model="inputText" placeholder="请输入...">
+            <button @click="switchMicrophoneMode">{{ (microphoneOn) ? '闭麦' : '开麦' }}</button>
         </div>
 
         <div class="left-window">
