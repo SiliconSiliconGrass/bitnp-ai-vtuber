@@ -5,8 +5,10 @@ function nextTick(callback) {
 /**
  * Audio loading, playing, and real time volume calculating.
  */
-export default class AudioBank {
-    constructor() {
+export default class AudioBank extends EventTarget {
+    constructor() {        
+
+        super();
 
         /** @type {Object<string, string>} */
         this.sources = {}; // id -> source
@@ -114,6 +116,8 @@ export default class AudioBank {
             }
         });
 
+        this.dispatchEvent(new Event('clear'));
+
         // this.audioContainer.innerHTML = "";
     }
 
@@ -144,6 +148,10 @@ export default class AudioBank {
                 }
                 resolve();
             }, { once: true }); // 该listener只触发一次
+
+            this.addEventListener('clear', async () => {
+                resolve();
+            }, { once: true });
         });
     }
 

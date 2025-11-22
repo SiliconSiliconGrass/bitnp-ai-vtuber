@@ -35,8 +35,13 @@ class GlmBot(AbstractBot):
     async def respond_to_context(self, messages: Optional[List[Dict]] = None) -> str:
         """Send messages to GLM-4 API and stream the response"""
         
+
         if not messages:
             messages = self.messages
+
+        from pprint import pprint # DEBUG
+        print("context:") # DEBUG
+        pprint(messages) # DEBUG
 
         # 保留max_context_length条历史
         filtered_messages = messages[-self.max_context_length:] if len(messages) > self.max_context_length else messages.copy()

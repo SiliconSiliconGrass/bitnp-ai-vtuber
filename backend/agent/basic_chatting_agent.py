@@ -47,6 +47,8 @@ class BasicChattingAgent(Agent):
         # self.brackets_parsor_node.connect_to(LambdaNode(lambda _, data: print("brackets_parsor:", data, flush=True))) # DEBUG
         # self.event_emitter.connect_to(LambdaNode(lambda _, data: print("event_emitter:", data, flush=True))) # DEBUG
 
+        self._curr_agent_response = ""
+
         self._curr_task: asyncio.Task = None
 
         @self.on("user_input")
@@ -56,8 +58,10 @@ class BasicChattingAgent(Agent):
             """
 
             if self._curr_task:
-                print("[interrupted!]")
-                self._curr_task.cancel()
+                print("[interrupted!]") # DEBUG
+                self.interrupt()
+
+            self._curr_agent_response = ""
 
             async def task_func():
                 content = event_data.get("content", "")
@@ -67,24 +71,42 @@ class BasicChattingAgent(Agent):
                 
                 # 调用 LLM API 处理用户输入
                 self.llm.append_context(content, "user")
-                res_task = asyncio.create_task(self.llm.respond_to_context())
-            # print(f"LLM 回复: {res}") # DEBUG
+                res = await self.llm.respond_to_context()
+                # print(f"LLM 回复: {res}") # DEBUG
 
-            print("creating task")
             task = asyncio.create_task(task_func())
             self._curr_task = task
         
-        @self.loop
-        async def test_loop(self: 'BasicChattingAgent'):
-            print("test_loop")
+        # @self.loop
+        # async def test_loop(self: 'BasicChattingAgent'):
+        #     print("test_loop")
 
         @self.llm.on("message_delta")
         async def handle_message_delta(data):
+            # message = await self.check_message()
+            # if message and message.get("type", "") == "event" and message.get("data", {}).get("type", "") == "user_input":
+            #     print("should interrupt")
+            #     self._curr_task.cancel()
+            #     return
+
+            print("DEBUG 1")
+            await asyncio.sleep(0.1) # check point (to check if the conversation is interrupted)
             await self.sentence_sep_node.handle(data["content"])
         
         @self.llm.on("done")
         async def handle_done(data):
             await self.sentence_sep_node.handle(" ")
+    
+    def interrupt(self):
+        """
+        Interrupt the current task
+        """
+        if self._curr_task:
+            self._curr_task.cancel()
+            self._curr_task = None
+            if len(self.llm.messages) > 0 and self.llm.messages[-1].get("role") != "assistant":
+                self.llm.append_context(f"{self._curr_agent_response} ... (被打断)", role="assistant")
+            self.sentence_sep_node.reset()
     
     async def generate_tts_base64(self, text: str, text_language: str):
         """
@@ -109,7 +131,9 @@ class BasicChattingAgent(Agent):
         await asyncio.sleep(0) # check point (to check if the conversation is interrupted)
 
         if data_type == "text":
+            self._curr_agent_response += content
             media_data = await self.generate_tts_base64(text=content, text_language="zh")
             await self.emit({"type": "say_aloud", "content": content, "media_data": media_data})
         elif data_type == "tag":
+            self._curr_agent_response += f"[{content}]"
             await self.emit({"type": "bracket_tag", "content": content})

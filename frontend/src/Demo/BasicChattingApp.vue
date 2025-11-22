@@ -239,8 +239,10 @@ export default {
         this.$refs.inputArea.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 // 清空事件队列
-                eventQueue.length = 0;
-                // audioBank.clear();
+                while (eventQueue.length > 0) {
+                    eventQueue.shift();
+                }
+                audioBank.clear();
                 this.recordChat(this.inputText);
                 this.inputText = "";
             }

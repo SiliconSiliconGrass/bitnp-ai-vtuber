@@ -88,26 +88,30 @@ class Agent:
         if self.ws:
             await self.ws.send(json.dumps({"type": "event", "data": event_data}))
 
+    async def check_message(self):
+        """
+        Handle an event message.
+        """
+        if not self.ws:
+            return
+
+        try:
+            message = await asyncio.wait_for(self.ws.recv(), timeout=0.1)
+            message = json.loads(message)
+            return message
+        except (json.JSONDecodeError, asyncio.TimeoutError):
+            return None
+
     async def main_loop(self):
-        ws = self.ws
         while True:
             try:
-                # # loop functions
-                # if "loop" in self._event_handlers:
-                #     for handler in self._event_handlers["loop"]:
-                #         if asyncio.iscoroutinefunction(handler):
-                #             await handler(self, "", {})
-                #         else:
-                #             handler(self, "", {})
+                # print("main loop alive")
 
-                print("agent alive")
-
-                try:
-                    message = await asyncio.wait_for(ws.recv(), timeout=0.1)  # 1 秒超时
-                    message = json.loads(message)
-                    print(f"智能体 {self.agent_name} 接收事件: {message}") # DEBUG
-                except (json.JSONDecodeError, asyncio.TimeoutError):
+                print("[main loop] receiving message...")
+                message = await self.check_message()
+                if not message:
                     continue
+                print(f"智能体 {self.agent_name} 接收事件: {message}") # DEBUG
 
                 if type(message) is not dict:
                     continue
@@ -125,12 +129,14 @@ class Agent:
                             asyncio.create_task(handler(self, time_iso, event_data))
                         else:
                             handler(self, time_iso, event_data)
-                
+
                 # 例如：await self.handle_event(message)
             except websockets.ConnectionClosed:
                 # 连接断开，退出循环
                 break
-
+    
+    async def event_loop(self):
+        while True:
             await asyncio.sleep(0.1)
 
     async def run(self):

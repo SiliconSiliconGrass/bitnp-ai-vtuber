@@ -1,10 +1,16 @@
-from typing import Callable
+from typing import Callable, Literal
 import asyncio
+
+Message = dict[Literal["role", "content"], str]
+Context = list[Message]
 
 class AbstractBot:
     def __init__(self):
-        self.messages = []
+        self.messages: Context = []
         self._event_handlers: dict[str, list[Callable[dict, None]]] = {}
+
+        self.response = ''
+        self.buffer = ''
 
     def on(self, name_of_event: str):
         """
@@ -39,6 +45,7 @@ class AbstractBot:
             - 'message_delta': Called when a new message delta (a short chunk of text) is received
             - 'done': Called when the response is done
         """
+        await asyncio.sleep(0)
         if name_of_event in self._event_handlers:
             for func in self._event_handlers[name_of_event]:
                 if asyncio.iscoroutinefunction(func):
