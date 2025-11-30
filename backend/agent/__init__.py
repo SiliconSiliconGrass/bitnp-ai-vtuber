@@ -1,1 +1,12 @@
+from .abstract_agent import Agent
 from .basic_chatting_agent import BasicChattingAgent
+from config_types import LLM_Config
+
+REGISTRY = {
+    "basic_chatting_agent": BasicChattingAgent,
+}
+
+def create_agent(agent_type: str, server_url: str, agent_name: str, llm_api_config: LLM_Config, **kwargs) -> Agent:
+    if agent_type not in REGISTRY:
+        raise ValueError(f"Unknown agent type: {agent_type}")
+    return REGISTRY[agent_type](server_url = server_url, agent_name = agent_name, llm_api_config = llm_api_config, **kwargs)

@@ -1,0 +1,55 @@
+# config classes
+from pydantic import BaseModel, ConfigDict
+from typing import Iterator, Tuple, Any
+
+class CompatibaleModel(BaseModel):
+    """support dict-like access & extra fields"""
+
+    model_config = ConfigDict(extra='allow')
+
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:
+        for field_name in self.model_fields:
+            yield field_name, getattr(self, field_name)
+    
+    def __getitem__(self, key: str) -> Any:
+        if hasattr(self, key):
+            return getattr(self, key)
+        raise KeyError(f"字段 '{key}' 不存在")
+    
+    def keys(self):
+        return self.model_fields.keys()
+    
+    def values(self):
+        return (getattr(self, field) for field in self.model_fields)
+    
+    def items(self):
+        return ((field, getattr(self, field)) for field in self.model_fields)
+
+
+class LLM_Config(CompatibaleModel):
+    """
+    Config for common LLM APIs
+    """
+    api_name: str
+    token: str
+    model_name: str
+    system_prompt: str
+    max_context_length: int
+
+class TTS_Config(CompatibaleModel):
+    """
+    Config for GPT-SoVITS v1
+    """
+    gpt_weights_path: str
+    sovits_weights_path: str
+    ref_wav_path: str
+    prompt_text: str
+    prompt_language: str
+
+class AgentConfig(CompatibaleModel):
+    """
+    Config for common agents
+    """
+    server_url: str
+    agent_name: str
+    llm_api_config: LLM_Config

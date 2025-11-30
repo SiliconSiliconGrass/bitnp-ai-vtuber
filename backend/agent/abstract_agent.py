@@ -20,6 +20,7 @@ EventData = dict
 class Agent:
     def __init__(self, server_url: str, agent_name: str, llm_api_config: BotConfig = None):
 
+        # ensure the server_url is a valid websocket url
         if not (server_url.startswith("ws://") or server_url.startswith("wss://")):
             if server_url.startswith("https://"):
                 server_url = server_url.replace("https://", "wss://", 1)

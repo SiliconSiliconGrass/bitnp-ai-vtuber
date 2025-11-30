@@ -25,11 +25,10 @@ def is_empty(content: str) -> bool:
     return not content.strip()
 
 class BasicChattingAgent(Agent):
-    def __init__(self, server_url: str, agent_name: str, llm_api_config: BotConfig = None, tts_config: TTS_Config = None):
+    def __init__(self, server_url: str, agent_name: str, llm_api_config: BotConfig, tts_config: TTS_Config):
         super().__init__(server_url, agent_name, llm_api_config)
-        
-        tts_config["name"] = agent_name
-        define_speaker(**tts_config)
+
+        define_speaker(name=agent_name, **tts_config)
 
         # streaming workflow: sentence_sep -> brackets_parsor -> event_emitter
         self.sentence_sep_node = SentenceSepNode()
@@ -58,7 +57,7 @@ class BasicChattingAgent(Agent):
             """
 
             if self._curr_task:
-                print("[interrupted!]") # DEBUG
+                # print("[interrupted!]") # DEBUG
                 self.interrupt()
 
             self._curr_agent_response = ""
@@ -83,13 +82,6 @@ class BasicChattingAgent(Agent):
 
         @self.llm.on("message_delta")
         async def handle_message_delta(data):
-            # message = await self.check_message()
-            # if message and message.get("type", "") == "event" and message.get("data", {}).get("type", "") == "user_input":
-            #     print("should interrupt")
-            #     self._curr_task.cancel()
-            #     return
-
-            print("DEBUG 1")
             await asyncio.sleep(0.1) # check point (to check if the conversation is interrupted)
             await self.sentence_sep_node.handle(data["content"])
         
