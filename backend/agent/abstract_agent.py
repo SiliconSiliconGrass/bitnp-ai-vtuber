@@ -108,7 +108,7 @@ class Agent:
             try:
                 # print("main loop alive")
 
-                print("[main loop] receiving message...")
+                # print("[main loop] receiving message...") # DEBUG
                 message = await self.check_message()
                 if not message:
                     continue

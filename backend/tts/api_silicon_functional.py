@@ -13,6 +13,8 @@ Modified Functional API for GPT-SoVITS v1
 import os,re
 import sys
 
+os.environ['HF_ENDPOINT'] = 'https://mirrors.modelscope.cn'
+
 now_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(now_dir)
 sys.path.append("%s/GPT_SoVITS" % (now_dir))
