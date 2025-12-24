@@ -12,5 +12,5 @@ def get_prompt(prompt_name: str) -> str:
     if prompt_name not in AVAILABLE_PROMPTS:
         raise ValueError(f"Prompt {prompt_name} not found")
 
-    with open(os.path.join(self_dir, f"{prompt_name}.txt"), "r") as f:
+    with open(os.path.join(self_dir, f"{prompt_name}.txt"), "r",encoding='utf-8') as f:
         return f.read()
